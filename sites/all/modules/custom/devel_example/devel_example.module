@@ -1,0 +1,14 @@
+<?php
+/**
+* @file
+* A description of what your module does.
+*/
+function devel_example_init()
+{
+    /**
+     * global $user;
+    dsm($user, 'my string');
+    dsm('herpderp',' variable 2');
+    */
+
+}

@@ -1,0 +1,181 @@
+<?php
+/**
+* @file
+* API for 'connect  to call'
+*/
+
+
+require_once ( dirname(__FILE__) . '/menu_magic.extra.inc');
+require_once ( dirname(__FILE__) . '/menu_magic.user.inc');
+require_once( dirname(__FILE__) . '/menu_magic_context.inc');
+/**
+ *  hook_menu()
+ *  title isn't translated, so we dont wrap it in a t(), drupal will handle
+ * the translation automatically.
+ *
+ * page callback refers to the page that will be returned when hitting the
+ * specified url 'magic' in this case.
+ *
+ * access callback will call the function user_access(args ...) with the parameter
+ * that we specify in access arguments which in this case is 'access content'
+ * which will basically check if the 'access content' checkbox is checked for the
+ * current user.  actually we can even leave out the 'access callback' because
+ * its the default setting to call user_access(args ...)
+ *
+ *'Page arguments' will provide the arguments that menu_magic_extra(args)
+ * will receive. in this case, we pass the wildcard after magic/  ...
+ * the reason why we give this 1 as parameter, is because we threat the String
+ * as an array, so magic would be index '0' hence index '1' is the wildcard.
+ *
+ * The 'file' attribut is a file that will be loaded only if it has to,
+ * and this file will contain all of the information needed to
+ * serve this call.
+ *
+ * the 'type' property: Has a couple of different options, the default one
+ * is the MENU_NORMAL_ITEM which makes the item show up in the menu, other such
+ * as the one we're making here is the MENU_LOCAL_TASK which is usually being rendered
+ * as a tab, and is made to show different sets of data.
+ *
+ * 'context' : is a way to add a menu to the configuration we can perform on nodes
+ * and blocks, and other visuals. There is 3 options of bitmasks to add to the context
+ * attribut, either you add one of those, that we've added or you add both of them
+ * in a  'inclusive or' which turns on both of them. Actually i tried to add both of them originally -
+ * but none of them ended up showing, just adding one of them works though , not entirely sure whats that about.
+ * all of the hook_menu() is documented at:
+ * https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_menu/7
+ * @return array
+ */
+function dlfapi_menu()
+{
+    $items = array();
+    $items['magic'] = array(
+      'title' => 'A little magic',
+        'page callback' => 'menu_magic_basic',
+        'access callback' => 'user_access',
+        'access arguments' => array('access content'),
+        'file' => 'menu_magic.extra.inc'
+    );
+
+    $items['magic/%'] = array(
+        'title' => 'even more magical',
+          'page callback' => 'menu_magic_extra',
+          'page arguments'=> array(1),
+          'access arguments' => array('access content')
+    );
+
+
+    $items['user/%/magic'] = array(
+    'title' => 'Magic',
+        'description' => 'Magical magic for users',
+        'page callback' => 'menu_magic_user_tab',
+        'page arguments' => array(1),
+        'access callback' => 'user_access',
+        'access arguments' => array('administer users'),
+        'file' => 'menu_magic.user.inc',
+        'type' => MENU_LOCAL_TASK,
+    );
+
+    /**
+    $items['node/%/magic'] = array(
+      'title' => 'Magic',
+        'description' => 'Do amazing and magical things',
+        'page callback' => 'menu_magic_node_context',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+        'type' => MENU_LOCAL_TASK,
+        'context' => MENU_CONTEXT_INLINE,
+    );
+     */
+
+    /**
+     * The same code as right above, but this time using auto loaders.
+     * but with a special wildcard, what this is going to do is call the build in function
+     * node_load(%) (What happens if exception is thrown?) nevertheless, we'll end up with a pure node object,
+     * "Strongly typed" This allows us to not check if we have a real node object in the menu_magic_node_context
+     * function.. We can use this
+     * weird version of a wildcard for other types aswell, like above this, we could use %user,
+     * basically this function works for anything where drupal has build in the type_load(arg) method.
+     * Im allso thinking if we should use some kind of JSON decoder on these objects, make them into a class,
+     * in order to call get/set on the object instead of getting to the values the hard JSON way.
+     */
+    $items['node/%node/magic'] = array(
+        'title' => 'Magic',
+        'description' => 'Do amazing and magical things',
+        'page callback' => 'menu_magic_node_context',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+        'type' => MENU_LOCAL_TASK,
+        'context' => MENU_CONTEXT_INLINE,
+    );
+    return $items;
+}
+
+/**
+ * menu_magic_basic()
+ * @return array
+ */
+function menu_magic_basic()
+{
+    $content = array();
+    //This is a very very simple page element. it will appear on the page
+    //but other modules can't customize it and themes can't override its markup.
+    $content['raw_markup'] = array(
+      '#type' => 'markup',
+        '#markup' => '<p>Truly, this is magical!</p>',
+    );
+    return $content;
+}
+
+
+/**
+ * Implements hook_permission().
+ * we're returning a 2 dimensional array, on the first index
+ * we've seperated it into key/value, and on the first index of the array, the key
+ *  'administer demo module' refers to the array containing title and description.
+ *  The result of this function you can find at people --> permissions --> search for dlf
+ *
+ * @return array
+ */
+function dlfapi_permission()
+{
+    return array(
+        'administer demo module:' => array(
+          'title' => t('Administer demo module'),
+            'description' => t('Perform administration tasks for the demo module '),
+        ),
+    );
+
+}
+
+
+/**
+ *
+ */
+/**
+ * hook_node_view($node, $view_mode, $langcode)
+ *
+ * Each time any node is being viewed on our drupal site, this hook
+ * is being called so that it can contribute, the way we contribute is by
+ * edditing the nodes content array, adding an additional field which we
+ * can call whatever we want, the name of the keys we put into the
+ *
+ * @param $node
+ * @param $view_mode
+ * @param $langcode
+ * @return void
+ */
+function dlfapi_node_view($node, $view_mode, $langcode)
+{
+    $node->content['demo_field'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p>' . t('this is only a demo') .' </p>',
+        '#weight' => -10,
+    );
+    $node->content['demo_list'] = array(
+      '#items' => array('green', 'blue', 'yellow', 'red'),
+        '#theme' => 'item_list',
+        '#weight' => -9,
+    );
+    krumo($node);
+}
+

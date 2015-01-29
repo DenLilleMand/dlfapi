@@ -1,0 +1,11 @@
+<?php
+
+
+
+function dlfapi_menu()
+{
+    $items = array();
+    $items['rest/user/%'] = array(
+    );
+    return $items;
+}

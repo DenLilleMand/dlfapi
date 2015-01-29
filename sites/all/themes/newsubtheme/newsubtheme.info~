@@ -1,0 +1,32 @@
+name = newsubtheme
+description = mit nye theme
+base theme = omega
+screenshot = screenshot.png
+engine = phptemplate
+core = 7.x
+
+; ========================================
+; Stylesheets
+; ========================================
+stylesheets[all][] = css/newsubtheme.normalize.css
+stylesheets[all][] = css/newsubtheme.hacks.css
+stylesheets[all][] = css/newsubtheme.styles.css
+stylesheets[all][] = css/newsubtheme.no-query.css
+
+; ========================================
+; Scripts
+; ========================================
+scripts[] = js/newsubtheme.behaviors.js
+
+; ========================================
+; Regions
+; ========================================
+regions[branding] = Branding
+regions[header] = Header
+regions[navigation] = Navigation
+regions[highlighted] = Highlighted
+regions[help] = Help
+regions[content] = Content
+regions[sidebar_first] = First Sidebar
+regions[sidebar_second] = Second Sidebar
+regions[footer] = Footer
